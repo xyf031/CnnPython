@@ -1,0 +1,16 @@
+
+caffe.bin train -solver mySolver.prototxt -gpu 0 -weights caffe.caffemodel
+
+Train net output #0:
+Iteration [0-9]*, loss = 
+Test net output #0:
+Test net output #1:
+Iteration [0-9]*, Testing net (#0)
+
+
+cat 1.txt | grep "Train net output #0:" | awk '{print $11}' >& A1.txt
+cat 1.txt | grep "Test net output #0:" | awk '{print $11}' >& A2.txt
+cat 1.txt | grep "Test net output #1:" | awk '{print $11}' >& A3.txt
+cat 1.txt | grep "Iteration [0-9]*, loss" | awk '{print $5 , $6 , $7 , $8 , $9}' >& A4.txt
+cat 1.txt | grep "Iteration [0-9]*, Testing net (#0)" | awk '{print $5 , $6 , $7}' >& A5.txt
+
