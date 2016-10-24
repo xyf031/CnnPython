@@ -1,6 +1,6 @@
 
 
-def resolve_caffe_log(log_name, get_data = False, to_be_print = False, write_to_file = True, write_to_pic = False):
+def resolve_caffe_log(log_name, data = False, println = False, file = True, pic = False, pic_data = True):
   f_read = open(log_name, "r")
   f_strings = [i for i in f_read]
   f_read.close()
@@ -13,26 +13,35 @@ def resolve_caffe_log(log_name, get_data = False, to_be_print = False, write_to_
 
   for ii in range(len(f_strings)):
     if patten1 in f_strings[ii]:
-      tmp_train_iter = int(f_strings[ii - 1].split(" ")[5][0:-1])
-      tmp_train_loss = float(f_strings[ii].split(" ")[14])
+      tmp_train_iter = int(f_strings[ii - 1].split()[5][0:-1])
+      tmp_train_loss = float(f_strings[ii].split()[10])
       train_loss[tmp_train_iter] = tmp_train_loss
-      if to_be_print:
+      if println:
         print "Train", tmp_train_iter, ":\t", tmp_train_loss
       continue
     if patten2 in f_strings[ii]:
-      tmp_test_iter = int(f_strings[ii - 1].split(" ")[5][0:-1])
-      tmp_test_accu = float(f_strings[ii].split(" ")[14])
-      tmp_test_loss = float(f_strings[ii + 1].split(" ")[14])
+      tmp_test_iter = int(f_strings[ii - 1].split()[5][0:-1])
+      tmp_test_accu = float(f_strings[ii].split()[10])
+      tmp_test_loss = float(f_strings[ii + 1].split()[10])
       test_loss[tmp_test_iter] = tmp_test_loss
       test_accu[tmp_test_iter] = tmp_test_accu
-      if to_be_print:
+      if println:
         print "Test", tmp_test_iter, ":\t", tmp_test_accu, "\t", tmp_test_loss
 
   train_iters = train_loss.keys()
   test_iters = test_loss.keys()
   train_iters.sort()
   test_iters.sort()
-  if write_to_file:
+  train_loss_list = []
+  test_loss_list = []
+  test_accu_list = []
+  for ii in train_iters:
+    train_loss_list.append(train_loss[ii])
+  for ii in test_iters:
+    test_loss_list.append(test_loss[ii])
+    test_accu_list.append(test_accu[ii])
+
+  if file:
     f_write = open(log_name + "-Result-Data.txt", "w")
     for ii in train_iters:
       f_write.writelines("Train-Loss " + str(ii) + " : \t" + str(train_loss[ii]) + "\r\n")
@@ -41,8 +50,41 @@ def resolve_caffe_log(log_name, get_data = False, to_be_print = False, write_to_
     f_write.close()
     print log_name + "-Result-Data.txt --- has been writen."
 
-  # if write_to_pic:
-    # import matplotlib
+  if pic:
+    import matplotlib.pyplot as plt
+    x_min = 0
+    x_max = train_iters[-1] + train_iters[1] - train_iters[0]
+    y_min = 0
+    # y_max = train_loss_list[int((1 - 0.98) * len(train_loss_list))]
+    y_max = (train_loss_list[0] + train_loss_list[1] + train_loss_list[2]) / 9
+    
+    plt.figure(figsize=(8, 6), dpi=300)
+    mypl = plt.subplot(111)
+    plt.subplots_adjust(left=0.05, bottom=0.05, right=0.9, top=0.95, wspace=0, hspace=0)
+    mypl.plot(train_iters, train_loss_list, 'r.-', linewidth=0.5, alpha=0.8, markersize=3)
+    mypl.plot(test_iters, test_loss_list, 'b.-', linewidth=0.5, alpha=0.8, markersize=3)
+    mypl.axis([x_min, x_max, y_min, y_max])
 
-  if get_data:
-    return [train_loss, test_loss, test_accu]
+    if pic_data:
+      y_skip = (y_max - y_min) / 50
+      train_print_count = 0
+      for ii in train_iters:
+        tmp_y = y_min + 0.3 * (y_max - y_min) + y_skip * (train_print_count % 10)
+        mypl.text(ii, tmp_y, str(train_loss_list[train_print_count]), fontsize=5)
+        mypl.plot([ii, ii], [train_loss_list[train_print_count], tmp_y], 'k-', linewidth=0.3, alpha=0.2)
+        train_print_count += 1
+      
+      test_print_count = 0
+      for ii in test_iters:
+        tmp_y = y_min + 0.7 * (y_max - y_min) + y_skip * (test_print_count % 10)
+        mypl.text(ii, tmp_y, str(test_loss_list[test_print_count]), fontsize=5)
+        mypl.plot([ii, ii], [test_loss_list[test_print_count], tmp_y], 'b-', linewidth=0.3, alpha=0.2)
+        test_print_count += 1
+    
+    plt.xticks(fontsize=7)
+    plt.yticks(fontsize=7)
+    plt.savefig(log_name + ".png", dpi=300)
+    print log_name + ".png --- has been created."
+
+  if data:
+    return [train_iters, train_loss_list, test_iters, test_loss_list, test_accu_list]
