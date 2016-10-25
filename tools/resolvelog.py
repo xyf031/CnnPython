@@ -1,6 +1,6 @@
 
 
-def resolve_caffe_log(log_name, data = False, println = False, file = True, pic = False, pic_data = True):
+def resolve_caffe_log(log_name, data = False, println = True, file = True, pic = False, pic_data = True):
   f_read = open(log_name, "r")
   f_strings = [i for i in f_read]
   f_read.close()
@@ -13,20 +13,30 @@ def resolve_caffe_log(log_name, data = False, println = False, file = True, pic 
 
   for ii in range(len(f_strings)):
     if patten1 in f_strings[ii]:
-      tmp_train_iter = int(f_strings[ii - 1].split()[5][0:-1])
       tmp_train_loss = float(f_strings[ii].split()[10])
+      for offset in range(5):
+        if "Iteration " in f_strings[ii - 1 - offset] and "loss = " in f_strings[ii - 1 - offset]:
+          tmp_train_iter = int(f_strings[ii - 1 - offset].split()[5][0:-1])
+          break
       train_loss[tmp_train_iter] = tmp_train_loss
       if println:
         print "Train", tmp_train_iter, ":\t", tmp_train_loss
       continue
+
     if patten2 in f_strings[ii]:
-      tmp_test_iter = int(f_strings[ii - 1].split()[5][0:-1])
       tmp_test_accu = float(f_strings[ii].split()[10])
-      tmp_test_loss = float(f_strings[ii + 1].split()[10])
+      for offset in range(5):
+        if "Iteration " in f_strings[ii - 1 - offset] and "Testing net " in f_strings[ii - 1 - offset]:
+          tmp_test_iter = int(f_strings[ii - 1 - offset].split()[5][0:-1])
+          break
+      for offset in range(5):
+        if "Test net output #1: loss = " in f_strings[ii + 1 + offset]:
+          tmp_test_loss = float(f_strings[ii + 1].split()[10])
+          break
       test_loss[tmp_test_iter] = tmp_test_loss
       test_accu[tmp_test_iter] = tmp_test_accu
       if println:
-        print "Test", tmp_test_iter, ":\t", tmp_test_accu, "\t", tmp_test_loss
+        print "Test", tmp_test_iter, ":\t", tmp_test_loss, "\t", tmp_test_accu
 
   train_iters = train_loss.keys()
   test_iters = test_loss.keys()
@@ -62,7 +72,8 @@ def resolve_caffe_log(log_name, data = False, println = False, file = True, pic 
     x_max = train_iters[-1] + train_iters[1] - train_iters[0]
     y_min = 0
     # y_max = train_loss_list[int((1 - 0.98) * len(train_loss_list))]
-    y_max = (train_loss_list[0] + train_loss_list[1] + train_loss_list[2]) / 9
+    # y_max = (train_loss_list[0] + train_loss_list[1] + train_loss_list[2]) / 3
+    y_max = sum(train_loss_list[0:3]) / 3.0
     
     plt.figure(figsize=(8, 6), dpi=DPI)
     mypl = plt.subplot(111)
