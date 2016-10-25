@@ -75,7 +75,7 @@ def resolve_caffe_log(log_name, data = False, println = True, file = True, pic =
     # y_max = (train_loss_list[0] + train_loss_list[1] + train_loss_list[2]) / 3
     y_max = sum(train_loss_list[0:3]) / 3.0
     
-    plt.figure(figsize=(8, 6), dpi=DPI)
+    plt.figure(figsize=(10, 6), dpi=DPI)
     mypl = plt.subplot(111)
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.9, top=0.95, wspace=0, hspace=0)
     mypl.plot(train_iters, train_loss_list, 'r.-', linewidth=LOSS_LINE_WIDTH, alpha=LOSS_ALPHA, markersize=3)
@@ -105,3 +105,38 @@ def resolve_caffe_log(log_name, data = False, println = True, file = True, pic =
 
   if data:
     return [train_iters, train_loss_list, test_iters, test_loss_list, test_accu_list]
+
+
+def compare_logs(iters1, list1, iters2, list2):
+  length_of_data = len(iters1)
+  if len(list1) != length_of_data or len(iters2) != length_of_data or len(list2) != length_of_data:
+    print "compare_logs(): input length error!"
+    return
+
+  for ii in range(length_of_data):
+    if iters1[ii] != iters2[ii]:
+      print "compare_logs(): iters not equal"
+      return
+
+  import matplotlib.pyplot as plt
+  DPI = 400
+  LOSS_LINE_WIDTH = 0.5
+  LOSS_ALPHA = 0.8
+  x_min = 0
+  x_max = iters1[-1] + iters1[1] - iters1[0]
+  y_min = 0
+  y_max = max(sum(list1[0:3]) / 3.0, 1.0)
+  # y_max = 1
+
+  plt.figure(figsize=(10, 6), dpi=DPI)
+  mypl = plt.subplot(111)
+  plt.subplots_adjust(left=0.05, bottom=0.05, right=0.9, top=0.95, wspace=0, hspace=0)
+  mypl.plot(iters1, list1, 'r.-', linewidth=LOSS_LINE_WIDTH, alpha=LOSS_ALPHA, markersize=3)
+  mypl.plot(iters2, list2, 'b.-', linewidth=LOSS_LINE_WIDTH - 0.1, alpha=LOSS_ALPHA + 0.1, markersize=2)
+  mypl.axis([x_min, x_max, y_min, y_max])
+
+  plt.xticks(fontsize=7)
+  plt.yticks(fontsize=7)
+  plt.savefig("compareLogs.png", dpi=DPI)
+
+
