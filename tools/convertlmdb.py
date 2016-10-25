@@ -1,5 +1,6 @@
 
 import lmdb
+import caffe
 from caffe.proto import caffe_pb2
 
 
