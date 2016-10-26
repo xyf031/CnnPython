@@ -107,7 +107,7 @@ def resolve_caffe_log(log_name, data = False, println = True, file = True, pic =
     return [train_iters, train_loss_list, test_iters, test_loss_list, test_accu_list]
 
 
-def compare_logs(iters1, list1, iters2, list2):
+def compare_logs(iters1, list1, iters2, list2, out_name = "compareLogs.png"):
   length_of_data = len(iters1)
   if len(list1) != length_of_data or len(iters2) != length_of_data or len(list2) != length_of_data:
     print "compare_logs(): input length error!"
@@ -137,6 +137,21 @@ def compare_logs(iters1, list1, iters2, list2):
 
   plt.xticks(fontsize=7)
   plt.yticks(fontsize=7)
-  plt.savefig("compareLogs.png", dpi=DPI)
+  plt.savefig(out_name, dpi=DPI)
+
+
+def easyDo():
+  log_name1 = "1.txt"
+  a = resolve_caffe_log(log_name1, data = True, println = True, file = True, pic = True, pic_data = False)
+  [train_iters1, train_loss_list1, test_iters1, test_loss_list1, test_accu_list1] = a
+
+  log_name2 = "2.txt"
+  b = resolve_caffe_log(log_name2, data = True, println = True, file = True, pic = True, pic_data = False)
+  [train_iters2, train_loss_list2, test_iters2, test_loss_list2, test_accu_list2] = b
+  
+  compare_logs(train_iters1, train_loss_list1, train_iters2, train_loss_list2, "TrainLoss-Red is Origion.png")
+  compare_logs(test_iters1, test_loss_list1, test_iters2, test_loss_list2, "TestLoss-Red is Origion.png")
+  compare_logs(test_iters1, test_accu_list1, test_iters2, test_accu_list2, "TestAccu-Red is Origion.png")
+
 
 
