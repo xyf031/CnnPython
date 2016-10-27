@@ -1,14 +1,49 @@
 
+import resolvelog
+resolve_caffe_log(log_name, data = False, println = False, file = True, pic = False, pic_data = True)
+return [train_iters, train_loss_list, test_iters, test_loss_list, test_accu_list]
+
+import convertlmdb
+print_labels(dir_path, print_cols = 100, file_out=False, return_labels=False)
+return labels  # labels = []
+generate_max_differ(dir_path)
+
+
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 6), dpi=300)
+mypl = plt.subplot(111)
+plt.subplots_adjust(left=0.05, bottom=0.05, right=0.9, top=0.95, wspace=0, hspace=0)
+
+mypl.plot(xs, ys, 'r.-', linewidth=0.5, alpha=0.8, markersize=3)
+mypl.plot(xs1, ys1, 'b.-', linewidth=0.5, alpha=0.8, markersize=3)
+mypl.text(x, y, str, fontsize=5)
+
+mypl.axis([x_min, x_max, y_min, y_max])
+plt.xticks(fontsize=7)
+plt.yticks(fontsize=7)
+plt.savefig(log_name + ".png", dpi=300)
+
 
 # import readline, rlcompleter
-# readline.parse_and_bind("tab: complete")
+# readline.parse_and_bind("tab: complete")  # for Linux
+# readline.parse_and_bind("bind ^I rl_complete")  # for Mac
 # Save this to ~/.pythonstartup
 # and append to ~/.bashrc: export PYTHONSTARTUP=~/.pythonstartup
+
+# import os
+# cl='os.system("clear")'
+# exec(cl)
+# os.system("clear")
+# os.chdir("/home/xyf/caffe-master/")
+
+# import commands
+# a = commands.getoutput('cat SF/maxdiffer_log.txt | grep "Train net output #0:"')
 
 
 # import sys
 # sys.path.insert(0, "/home/xyf/caffe-master/python")
 # sys.path.insert(0, "/Users/x/Documents/caffe-master/python")
+
 # vim ~/.bashrc
 # export PYTHONPATH=~/caffe-master/python
 # source ~/.bashrc
@@ -32,18 +67,8 @@ def pd(my_pic):
 # from pylab import *
 import numpy
 
-import os
-# cl='os.system("clear")'
-# exec(cl)
-# os.system("clear")
-# os.chdir("/home/xyf/caffe-master/")
-
-# import commands
-# a = commands.getoutput('cat SF/maxdiffer_log.txt | grep "Train net output #0:"')
-
 import caffe
 caffe.set_mode_gpu()
-
 
 
 solver = caffe.SGDSolver("SF/lenetSF-solver.prototxt")
@@ -151,31 +176,31 @@ imgOut.save("aaa.jpg")  # Ignore: "ValueError: ... Should be between 2 and 4"
 
 
 
-# ---------------------------------------- Print Wrong Pic ----------------------------------------
+# ---------------------------------------- Print ----------------------------------------
 
 # ---------------------------------------- *** ----------------------------------------
 
 
 
-# ---------------------------------------- Print Wrong Pic ----------------------------------------
+# ---------------------------------------- Print ----------------------------------------
 
 # ---------------------------------------- *** ----------------------------------------
 
 
 
-# ---------------------------------------- Print Wrong Pic ----------------------------------------
+# ---------------------------------------- Print ----------------------------------------
 
 # ---------------------------------------- *** ----------------------------------------
 
 
 
-# ---------------------------------------- Print Wrong Pic ----------------------------------------
+# ---------------------------------------- Print ----------------------------------------
 
 # ---------------------------------------- *** ----------------------------------------
 
 
 
-# ---------------------------------------- Print Wrong Pic ----------------------------------------
+# ---------------------------------------- Print ----------------------------------------
 
 # ---------------------------------------- *** ----------------------------------------
 
