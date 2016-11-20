@@ -1,0 +1,17 @@
+sudo apt-get install git
+sudo apt-get install libleveldb-dev liblmdb-dev
+sudo apt-get install libprotobuf-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler
+sudo apt-get install libboost-all-dev
+sudo apt-get install libatlas-base-dev
+sudo apt-get install python-dev python-opencv python-scipy
+sudo apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev
+
+
+sudo apt-get install python-pip python-dev python-numpy
+sudo apt-get install gfortran
+sudo pip install -r requirements.txt
+sudo pip install pydot
+sudo pip install easydict
+
+make pycaffe
+make matcaffe
