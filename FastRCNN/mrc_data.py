@@ -6,7 +6,7 @@ import scipy.io as sio
 # import cPickle
 
 import datasets.imdb
-import mrc_data
+import mrc_data_global
 
 class mrc_data(datasets.imdb):
     def __init__(self, dataset_path):
@@ -113,13 +113,6 @@ class mrc_data(datasets.imdb):
     
 
 
-
-
-
-
-
-
-
 def analyse_dataset(folder_path):
     '''
     ls folder_path/*.bmp
@@ -192,8 +185,6 @@ def analyse_dataset(folder_path):
     # return [abs_root, mrc_result, star_result]
 
 
-mrc_hard_count = 0
-star_hard_count = -1000
 def _mrc_filename_to_int(filename):
     try:
         intstr = filename[6:10]
@@ -212,8 +203,8 @@ def _mrc_filename_to_int(filename):
         try:
             res = int(intstr)
         except:
-            mrc_data.mrc_hard_count -= 1
-            return mrc_data.mrc_hard_count
+            mrc_data_global.mrc_hard_count -= 1
+            return mrc_data_global.mrc_hard_count
     return res
 
 
@@ -235,8 +226,8 @@ def _star_filename_to_int(filename):
         try:
             res = int(intstr)
         except:
-            mrc_data.star_hard_count -= 1
-            return mrc_data.star_hard_count
+            mrc_data_global.star_hard_count -= 1
+            return mrc_data_global.star_hard_count
     return res
 
 
