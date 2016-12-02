@@ -32,7 +32,12 @@ for i = 1: boxSize(1)
 	inrow2 = max(row2 - move, 1);
 	incol1 = min(row1 + move, colBound);
 	incol2 = max(row2 - move, 1);
-	if outrow1 >= outrow2 | outcol1 >= outcol2 | inrow1 >= inrow2 | incol1 >= incol2 | (outrow2-outrow1) <= (inrow2-inrow1) | (outcol2-outcol1) <= (incol2-incol1)
+
+	inrow1 = max(inrow1, outrow1 + 1);
+	inrow2 = min(inrow2, outrow2 - 1);
+	incol1 = max(incol1, outcol1 + 1);
+	incol2 = min(incol2, outcol2 - 1);
+	if outrow1 >= outrow2 | outcol1 >= outcol2 | inrow1 >= inrow2 | incol1 >= incol2
 		continue
 	end
 
