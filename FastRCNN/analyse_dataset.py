@@ -120,6 +120,16 @@ def _star_filename_to_int(filename):
     return res
 
 
+def convert2bmp(root_path):
+    # Convert *.mrc.bmp to *.bmp
+    mrcbmp_list = commands.getoutput('ls ' + os.path.join(root_path, '*.mrc.bmp')).split()
+    bmp_list = []
+    for ii in mrcbmp_list:
+        bmp_list.append(ii[0:-8] + '.bmp')
+    for ii in range(0, len(bmp_list)):
+        os.system('mv ' + mrcbmp_list[ii] + ' ' + bmp_list[ii])
+
+
 import sys, getopt
 opts, args = getopt.getopt(sys.argv[1:], "hf:t:", ["version", "file="])
 # print opts  # Defined args
