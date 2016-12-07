@@ -37,7 +37,7 @@ def parse_args():
                         default="models/mrcCaffeNet/testA.prototxt", type=str)
     parser.add_argument('--net', dest='caffemodel',
                         help='model to test',
-                        default="output/default/gammas-lowpass/mrc_caffenet_iter_1000.caffemodel", type=str)
+                        default="output/store/gammas-histeq/mrc_caffenet_iter_3000.caffemodel", type=str)
     
     parser.add_argument('--gpu', dest='gpu_id', help='GPU id to use',
                         default=0, type=int)
@@ -97,6 +97,7 @@ if __name__ == '__main__':
     # Experimental: treat the (K+1) units in the cls_score layer as linear
     # predictors (trained, eg, with one-vs-rest SVMs).
     # cfg.TEST.SVM = False
+    cfg.EXP_DIR = '20161206'
 
     print('PYTHON----------------------------------------Using config:')
     pprint.pprint(cfg)

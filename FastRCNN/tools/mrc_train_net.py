@@ -56,9 +56,9 @@ def parse_args():
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
 
-    if len(sys.argv) == 1:
-        parser.print_help()
-        # sys.exit(1)
+    # if len(sys.argv) == 1:
+    #     parser.print_help()
+    #     sys.exit(1)
 
     args = parser.parse_args()
     return args
@@ -86,11 +86,11 @@ if __name__ == '__main__':
         caffe.set_mode_gpu()
         caffe.set_device(args.gpu_id)
 
-
     imdb = mrc_data.mrc_data(args.folder_path)  # <--- Here!
     print 'PYTHON----------------------------------------Loaded dataset `{:s}` for training'.format(imdb.name)
     roidb = get_training_roidb(imdb)
 
+    cfg.EXP_DIR = '20161207'
     output_dir = get_output_dir(imdb, None)
     print 'PYTHON----------------------------------------Output will be saved to `{:s}`'.format(output_dir)
 
@@ -107,7 +107,6 @@ if __name__ == '__main__':
     cfg.TRAIN.BBOX_THRESH = 0.5
 
     cfg.TRAIN.SNAPSHOT_ITERS = 1000
-    cfg.EXP_DIR = '20161206'
 
     print('PYTHON----------------------------------------Using config:')
     pprint.pprint(cfg)
