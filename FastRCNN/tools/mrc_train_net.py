@@ -13,7 +13,6 @@ import _init_paths
 from fast_rcnn.train import get_training_roidb, train_net
 from fast_rcnn.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
 
-# from datasets.factory import get_imdb
 import mrc_data
 
 import caffe
@@ -22,20 +21,19 @@ import pprint
 import numpy as np
 import sys
 
+
 def parse_args():
     """
     Parse input arguments
     """
+
     parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
     parser.add_argument('--solver', dest='solver',
                         help='solver prototxt',
                         default="models/mrcCaffeNet/solverA.prototxt", type=str)
-    # parser.add_argument('--imdb', dest='imdb_name',
-    #                     help='dataset to train on',
-    #                     default='voc_2007_trainval', type=str)
     parser.add_argument('--folder', dest='folder_path',
                         help='dataset to train on',
-                        default='/home/xyf/ssd/histeqMRC/gammas-lowpass', type=str)
+                        default='/home/xyf/ssd/histeqMRC/gammas-histeq', type=str)
     parser.add_argument('--iters', dest='max_iters',
                         help='number of iterations to train',
                         default=3000, type=int)  # 1 iter = 2 seconds, 3000 iter = 100min, 10000=5.5h
@@ -55,6 +53,9 @@ def parse_args():
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
+    # parser.add_argument('--imdb', dest='imdb_name',
+    #                     help='dataset to train on',
+    #                     default='voc_2007_trainval', type=str)
 
     # if len(sys.argv) == 1:
     #     parser.print_help()
@@ -62,6 +63,7 @@ def parse_args():
 
     args = parser.parse_args()
     return args
+
 
 if __name__ == '__main__':
 
@@ -87,15 +89,16 @@ if __name__ == '__main__':
         caffe.set_device(args.gpu_id)
 
     imdb = mrc_data.mrc_data(args.folder_path)  # <--- Here!
-    print 'PYTHON----------------------------------------Loaded dataset `{:s}` for training'.format(imdb.name)
+    print 'PYTHON---------------------Loaded dataset `{:s}` for training'.format(imdb.name)
     roidb = get_training_roidb(imdb)
 
-    cfg.EXP_DIR = '20161207'
+    cfg.EXP_DIR = '20161209'
     output_dir = get_output_dir(imdb, None)
-    print 'PYTHON----------------------------------------Output will be saved to `{:s}`'.format(output_dir)
+    print 'PYTHON---------------------Output will be saved to `{:s}`'.format(output_dir)
 
     cfg.TRAIN.SCALES = (3500,)
     cfg.TRAIN.MAX_SIZE = 4000
+    cfg.TRAIN.BATCH_SIZE = 128*5
     
     # Overlap threshold for a ROI to be considered foreground (if >= FG_THRESH)
     cfg.TRAIN.FG_THRESH = 0.5
@@ -106,7 +109,7 @@ if __name__ == '__main__':
     # be used as a bounding-box regression training example
     cfg.TRAIN.BBOX_THRESH = 0.5
 
-    cfg.TRAIN.SNAPSHOT_ITERS = 1000
+    cfg.TRAIN.SNAPSHOT_ITERS = 5000
 
     print('PYTHON----------------------------------------Using config:')
     pprint.pprint(cfg)
