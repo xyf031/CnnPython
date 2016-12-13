@@ -20,6 +20,7 @@ import argparse
 import pprint
 import numpy as np
 import sys
+import os
 
 
 def parse_args():
@@ -36,7 +37,7 @@ def parse_args():
                         default='/home/xyf/ssd/histeqMRC/gammas-histeq', type=str)
     parser.add_argument('--iters', dest='max_iters',
                         help='number of iterations to train',
-                        default=3000, type=int)  # 1 iter = 2 seconds, 3000 iter = 100min, 10000=5.5h
+                        default=3000, type=int)  # 1-iter=2seconds, 3000-iter=100min, 10000=5.5h
     
     parser.add_argument('--weights', dest='pretrained_model',
                         help='initialize with pretrained model weights',
@@ -47,19 +48,6 @@ def parse_args():
     parser.add_argument('--rand', dest='randomize',
                         help='randomize (do not use a fixed seed)',
                         action='store_true')
-    parser.add_argument('--cfg', dest='cfg_file',
-                        help='optional config file',
-                        default=None, type=str)
-    parser.add_argument('--set', dest='set_cfgs',
-                        help='set config keys', default=None,
-                        nargs=argparse.REMAINDER)
-    # parser.add_argument('--imdb', dest='imdb_name',
-    #                     help='dataset to train on',
-    #                     default='voc_2007_trainval', type=str)
-
-    # if len(sys.argv) == 1:
-    #     parser.print_help()
-    #     sys.exit(1)
 
     args = parser.parse_args()
     return args
@@ -68,13 +56,7 @@ def parse_args():
 if __name__ == '__main__':
 
     args = parse_args()
-    # print('Called with args:')
-    # print(args)
-
-    if args.cfg_file is not None:
-        cfg_from_file(args.cfg_file)
-    if args.set_cfgs is not None:
-        cfg_from_list(args.set_cfgs)
+    print args
 
     if not args.randomize:
         # fix the random seeds (numpy and caffe) for reproducibility
@@ -88,13 +70,14 @@ if __name__ == '__main__':
         caffe.set_mode_gpu()
         caffe.set_device(args.gpu_id)
 
-    imdb = mrc_data.mrc_data(args.folder_path)  # <--- Here!
-    print 'PYTHON---------------------Loaded dataset `{:s}` for training'.format(imdb.name)
-    roidb = get_training_roidb(imdb)
 
-    cfg.EXP_DIR = '20161209'
+    imdb = mrc_data.mrc_data(args.folder_path)  # <--- Here!
+    roidb = get_training_roidb(imdb)
+    cfg.EXP_DIR = os.path.join('20161211', os.path.split(args.folder_path)[1])
     output_dir = get_output_dir(imdb, None)
+    print 'PYTHON---------------------Loaded dataset `{:s}` for training'.format(imdb.name)
     print 'PYTHON---------------------Output will be saved to `{:s}`'.format(output_dir)
+
 
     cfg.TRAIN.SCALES = (3500,)
     cfg.TRAIN.MAX_SIZE = 4000
@@ -109,7 +92,7 @@ if __name__ == '__main__':
     # be used as a bounding-box regression training example
     cfg.TRAIN.BBOX_THRESH = 0.5
 
-    cfg.TRAIN.SNAPSHOT_ITERS = 5000
+    cfg.TRAIN.SNAPSHOT_ITERS = 2000
 
     print('PYTHON----------------------------------------Using config:')
     pprint.pprint(cfg)

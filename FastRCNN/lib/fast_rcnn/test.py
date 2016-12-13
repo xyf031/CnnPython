@@ -245,6 +245,41 @@ def apply_nms(all_boxes, thresh):
             nms_boxes[cls_ind][im_ind] = dets[keep, :].copy()
     return nms_boxes
 
+def pickout_ice(all_boxes, imdb, cut_percentage):
+    '''
+    Calulate the mean value of pixels within the box, and then
+    cut the "cut_percentage" minimum boxes.
+    '''
+    num_classes = len(all_boxes)
+    num_images = len(all_boxes[0])
+    no_ice_boxes = [[[] for _ in xrange(num_images)] for _ in xrange(num_classes)]
+    for cls_ind in xrange(num_classes):
+        for im_ind in xrange(num_images):
+            detects = all_boxes[cls_ind][im_ind]
+            if detects == []:
+                continue
+            if cls_ind != imdb._class_to_index['particle']:
+                no_ice_boxes[cls_ind][im_ind] = detects.copy()
+                continue
+
+            img = cv2.imread(imdb.image_path_at(im_ind))
+            pickAvg = np.zeros(len(detects))
+            for detect_ind in xrange(len(detects)):
+                stat = img[int(detects[detect_ind][1]):int(detects[detect_ind][3]), 
+                    int(detects[detect_ind][0]):int(detects[detect_ind][2]), 0]  # .flatten()
+                # stat.sort()
+                # pickAvg[detect_ind] = stat[-1 * int(0.25 * len(stat))] - stat[int(0.25 * len(stat))]
+                pickAvg[detect_ind] = np.mean(stat)
+            avgSort = pickAvg.argsort()
+            avgLen = len(avgSort)
+            keep = avgSort[int(cut_percentage * avgLen):(avgLen - 1)]
+            # keep = avgSort[0:(-1 * int(cut_percentage * avgLen))]
+            if len(keep) == 0:
+                continue
+            no_ice_boxes[cls_ind][im_ind] = detects[keep, :].copy()
+    return no_ice_boxes
+
+
 def test_net(net, imdb):
     """Test a Fast R-CNN network on an image database."""
     num_images = len(imdb.image_index)
@@ -317,12 +352,21 @@ def test_net(net, imdb):
             inds = np.where(all_boxes[j][i][:, -1] > thresh[j])[0]
             all_boxes[j][i] = all_boxes[j][i][inds, :]
 
-    det_file = os.path.join(output_dir, 'detections.pkl')
+    det_file_name = imdb.name + '-avg' + str(cfg.TEST.MAX_AVG_IMAGE) 
+    det_file_name += '-max' + str(cfg.TEST.MAX_PER_IMAGE) + '-detections.pkl'
+    det_file = os.path.join(output_dir, det_file_name)
     with open(det_file, 'wb') as f:
         cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
 
-    print 'Applying NMS to all detections'
+    print 'Applying NMS to all detections by ' + str(cfg.TEST.NMS)
     nms_dets = apply_nms(all_boxes, cfg.TEST.NMS)
 
+    if False:
+        ICE_THRESH = 0.1
+        print 'Pick out dark-particles(may be ice) by percentage = ' + str(ICE_THRESH)
+        nms_dets = pickout_ice(nms_dets, imdb, ICE_THRESH)
+
     print 'Evaluating detections'
-    imdb.evaluate_detections(nms_dets, output_dir)
+    imdb.evaluate_detections(nms_dets, cfg.TEST.NMS, cfg.TEST.MAX_AVG_IMAGE, cfg.TEST.MAX_PER_IMAGE)
+    # imdb.evaluate_detections(no_ice, cfg.TEST.NMS, cfg.TEST.MAX_AVG_IMAGE, cfg.TEST.MAX_PER_IMAGE)
+

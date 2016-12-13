@@ -1,11 +1,10 @@
 
-# Version 3.5
-# Version: 2016-12-07-20:30
+# Version 3.9
+# Version: 2016-12-11-12:30
 # By Xiao Yifan
 
-import numpy as np
 import os
-# import cPickle
+import numpy as np
 
 import datasets.imdb
 
@@ -13,6 +12,8 @@ class mrc_data(datasets.imdb):
 
     def __init__(self, dataset_path):
         self._name = os.path.split(dataset_path)[1]  # Name of the protein.
+        if len(self._name) == 0:
+            self._name = os.path.split(os.path.split(dataset_path)[0])[1]
         self._root_path = dataset_path  # Absolute path of the dataset folder.
 
         self._classes = ['__background__', 'particle']
@@ -21,17 +22,14 @@ class mrc_data(datasets.imdb):
         self._class_to_index = dict(zip(self._classes, xrange(self._num_classes)))
 
         self._image_index = []  # List of *.bmp file absolute path.
-        # self._star_index = []  # List of *.star file absolute path.
-
         self._image_type = 'bmp'  # bmp.txt
+
         self._roidb = None
         self._roidb_handler = self.default_roidb
 
         self.config = {'cleanup'  : True,
                        'use_salt' : True}
                        #'top_k'    : 2000}
-        # self._obj_proposer = 'selective_search'
-        # self._roidb_cache = "/home/xyf/hhh"
 
         self._box_side_length = 100
         self._read_ALL()  # <---------- Entrance
@@ -46,23 +44,22 @@ class mrc_data(datasets.imdb):
     def star_path_at(self, i):
         return self._star_index[i]
 
-    def competition_mode(self, on):
-        if on:
-            self.config['use_salt'] = False
-            self.config['cleanup'] = False
-        else:
-            self.config['use_salt'] = True
-            self.config['cleanup'] = True
+    # def competition_mode(self, on):
+    #     if on:
+    #         self.config['use_salt'] = False
+    #         self.config['cleanup'] = False
+    #     else:
+    #         self.config['use_salt'] = True
+    #         self.config['cleanup'] = True
 
 
     def _read_ALL(self):
         self.read_ALL(self._root_path)
 
     def read_ALL(self, dataset_path):
+        # Read: bmp.txt, *.gtroi, *.boxes
+
         bmp_txt_path = os.path.join(dataset_path, self._image_type + '.txt')  # bmp.txt
-        # star_txt_path = os.path.join(dataset_path, 'star.txt')
-        # mat_path = os.path.join(dataset_path, 'selective_search.mat')
-        # if not (os.path.exists(bmp_txt_path) and os.path.exists(star_txt_path)):
         if not os.path.exists(bmp_txt_path):
             print "ERROR: read_ALL() fails. bmp.txt do not exist."
             return
@@ -70,9 +67,6 @@ class mrc_data(datasets.imdb):
         # Read bmp.txt
         with open(bmp_txt_path) as f:
             self._image_index = [i.strip() for i in f.readlines()]
-        # Read star.txt
-        # with open(star_txt_path) as f:
-        #     self._star_index = [i.strip() for i in f.readlines()]
 
         # Read all *.gtroi
         gt_roidb = []
@@ -80,66 +74,22 @@ class mrc_data(datasets.imdb):
             fGt = open(ii[0:(-1 * len(self._image_type))] + "gtroi", "r")  # *.gtroi
             gtLines = [i.strip().split() for i in fGt.readlines()]
             fGt.close()
+
             nBoxes = len(gtLines)
             boxes = self._strMatrix2intMatrix(gtLines)
             gt_classes = np.zeros((nBoxes), np.int32) + self._class_to_index['particle']
             gt_overlaps = np.zeros((nBoxes, self._num_classes), np.float32)
             gt_overlaps[:, self._class_to_index['particle']] = 1.0
             gt_roidb.append({'boxes':boxes,'gt_classes':gt_classes,'gt_overlaps':gt_overlaps,'flipped':False})
-        # gt_roidb = [self.read_star_file(star_path) for star_path in self._star_index]  # Read *.star
+
         ss_roidb = self.read_all_boxes(gt_roidb)  # Read *.boxes
         roidb = datasets.imdb.merge_roidbs(gt_roidb, ss_roidb)
         self._roidb = roidb
 
-        # Read selective_search.mat
-        # ss_roidb = self.read_selective_search_mat(gt_roidb, mat_path)
-
-    # def read_selective_search_mat(self, all_star, mat_path):
-    #     import scipy.io as sio
-    #     # Read selective_search.mat
-    #     raw_data = sio.loadmat(mat_path)['boxes'].ravel()
-    #     box_list = []
-    #     for i in xrange(raw_data.shape[0]):
-    #         box_list.append(raw_data[i][:, (1, 0, 3, 2)] - 1)
-    #         # Each item in raw_data is still a list, corresponds the Rois of the i-th pic.
-    #         # Size of raw_data[i] is (roiNum, 4).
-    #         # The columns of raw_data[i][j] is [rowBegin, colBegin, rowEnd, colEnd] in Matlab matrix.
-    #         # In python indices, that means [yBegin, xBegin, yEnd, xEnd] + 1. (Matlab indices begin from 1).
-    #     return self.create_roidb_from_box_list(box_list, all_star)
-
-    # def read_star_file(self, file_path):
-    #     # Read all *.star
-    #     # The box-border may exceed the pic! [0, max-pixel + 100/2]
-
-    #     fStar = open(file_path)
-    #     fLines = [ii.strip().split() for ii in fStar.readlines()]
-    #     fStar.close()
-    
-    #     boxes = []
-    #     for ii in fLines:
-    #         try:
-    #             x_center = float(ii[0])
-    #             y_center = float(ii[1])
-    #         except:
-    #             # print ii
-    #             continue
-    #         else:
-    #             xmin = max(0, x_center - self._box_side_length / 2)
-    #             xmax = x_center + self._box_side_length / 2
-    #             ymin = max(0, y_center - self._box_side_length / 2)
-    #             ymax = y_center + self._box_side_length / 2
-    #             boxes.append([int(xmin), int(ymin), int(xmax), int(ymax)])
-    
-    #     nBoxes = len(boxes)
-    #     boxes = np.array(boxes, np.int32)
-    #     gt_classes = np.zeros((nBoxes), np.int32) + self._class_to_index['particle']
-    #     gt_overlaps = np.zeros((nBoxes, self._num_classes), np.float32)
-    #     gt_overlaps[:, self._class_to_index['particle']] += 1.0
-    #     return {'boxes': boxes, 'gt_classes': gt_classes, 'gt_overlaps': gt_overlaps, 'flipped': False}
 
     def read_all_boxes(self, all_star):
         # Read all *.boxes
-        # The *.boxes must have same name with *.mrc/*.bmp
+        # The *.boxes must have same name with *.bmp
 
         all_boxes = []
         for i in self._image_index:
@@ -156,7 +106,7 @@ class mrc_data(datasets.imdb):
         return results
 
 
-    def evaluate_detections(self, all_boxes, output_dir=None):
+    def evaluate_detections(self, all_boxes, nms=0.9, imgavg=300, imgmax=600):
         # Generate *.pick, *-pick.jpg, Res-time.txt
 
         # Generate *.pick
@@ -194,11 +144,8 @@ class mrc_data(datasets.imdb):
         AverageIoU = (1.0 * IoUSum) / TruePositive
         AveragemAP = np.mean(mAP)
 
-        import time
-        t1 = time.ctime()
-        t2 = t1.replace(':', '-')
-        t3 = t2.replace(' ', '_')
-        fResult = open(os.path.join(self._root_path, 'Res-' + t3 + '.txt'), 'w+')
+        fResultName = 'Res-NMS=' + str(nms) + '-AVG' + str(imgavg) + '-MAX' + str(imgmax) + '.txt'
+        fResult = open(os.path.join(self._root_path, fResultName), 'w+')
         fResult.writelines('\r\nTruePositive:\r\n' + str(TruePositive) + '\r\n')
         fResult.writelines('\r\nFalsePositive:\r\n' + str(FalsePositive) + '\r\n')
         fResult.writelines('\r\nFalseNegative:\r\n' + str(FalseNegative) + '\r\n')
@@ -213,6 +160,19 @@ class mrc_data(datasets.imdb):
         print "FP = " + str(FalsePositive)
         print "FN = " + str(FalseNegative)
         print "Precision = " + str(Precision)
+        print "Dist = " + str(AverageDist)
+        print "IoU = " + str(AverageIoU)
+        print "mAP = " + str(AveragemAP)
+
+        resultPath = os.path.join(self._root_path, fResultName[0:-4])
+        if os.path.exists(resultPath):
+            print "Python WARNING:  Results not moved!"
+        else:
+            os.mkdir(resultPath)
+            os.system('mv ' + os.path.join(self._root_path, '*.jpg') + ' ' + resultPath)
+            os.system('mv ' + os.path.join(self._root_path, '*.pick') + ' ' + resultPath)
+            os.system('mv ' + os.path.join(self._root_path, fResultName) + ' ' + resultPath)
+            
 
     def _write_results_file(self, all_boxes):
         # all_boxes[class_id][image_id] = N x 5 array of detections in (x1, y1, x2, y2, score)
@@ -228,17 +188,6 @@ class mrc_data(datasets.imdb):
                     f.write('{:d} {:d} {:d} {:d} \t{:.3f}\r\n'.
                         format(int(rois[k, 0]), int(rois[k, 1]), int(rois[k, 2]), int(rois[k, 3]), rois[k, -1]))
             f.close()
-
-            # otherRoi = all_boxes[0][im_ind]
-            # f = open(filename + '-out', 'wt')
-            # if otherRoi == []:
-            #     f.write('\r\n')
-            # else:
-            #     rois = otherRoi
-            #     for k in xrange(rois.shape[0]):
-            #         f.write('{:d} {:d} {:d} {:d} \t{:.3f}\r\n'.
-            #             format(int(rois[k, 0]), int(rois[k, 1]), int(rois[k, 2]), int(rois[k, 3]), rois[k, -1]))
-            # f.close()
 
     def _draw_pick_gtroi(self, image_path, pick_path, gtroi_path):
         # Draw *.pick and *.gtroi on the *.bmp  ---> *-pick.jpg
@@ -261,6 +210,7 @@ class mrc_data(datasets.imdb):
             cv2.rectangle(im, (int(ii[0]), int(ii[1])), (int(ii[2]), int(ii[3])), (255, 0, 0), thickness=5)  #Blue
         cv2.imwrite(image_path[0:(-1 * len(self._image_type) - 1)] + '-pick.jpg', im)  # *-pick.jpg
 
+
     def Pair_Pick_Gtroi(self, pick_path, gtroi_path):
         # Pair *.pick and *.gtroi
         # return {TP, FP, FN, Dist, IoU, mAP}
@@ -269,6 +219,7 @@ class mrc_data(datasets.imdb):
 
         if not (os.path.exists(pick_path) and os.path.exists(gtroi_path)):
             print "ERROR: Pair_Pick_Gtroi() fails. *.pick or *.gtroi do not exist."
+            print "return \{\}: " + pick_path
             return {}
         fPick = open(pick_path, 'r')
         fGtroi = open(gtroi_path, 'r')
@@ -281,13 +232,15 @@ class mrc_data(datasets.imdb):
         summaryGtN = len(gt_list)
         if summaryGtN <= 0 or summaryPickN <= 0:
             print "SKIP: %s or %s has nothing!" % (pick_path, gtroi_path)
+            print "return \{\}: " + pick_path
             return {}
         picknumpy = self._strMatrix2intMatrix(pick_list)  # pick_list is R * 5, but picknumpy is R*4
         gtnumpy = self._strMatrix2intMatrix(gt_list)  # G * 4
 
         if self._box_side_length != (picknumpy[0][2] - picknumpy[0][0]):
-            print "ERROR: _pair_pick_gtroi(). Side-Length in *.pick in wrong!"
-            return {}
+            print "ERROR: Pair_Pick_Gtroi(). Side-Length in *.pick in wrong!"
+            print pick_path
+            # return {}
         SIDE = self._box_side_length
 
         IoU0 = np.zeros((summaryPickN, summaryGtN))

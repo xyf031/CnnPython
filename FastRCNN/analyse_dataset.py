@@ -192,6 +192,8 @@ if __name__ == '__main__':
         analyse_dataset(folder_path, file_type)
     else:
         bmp_list = commands.getoutput('ls ' + os.path.join(folder_path, '*.bmp')).split()
+        import random
+        random.shuffle(bmp_list)
         f = open(os.path.join(folder_path, 'bmp.txt'), 'w')
         for ii in bmp_list:
             f.writelines(os.path.abspath(ii) + '\r\n')

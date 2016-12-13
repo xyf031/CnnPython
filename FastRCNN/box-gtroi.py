@@ -75,7 +75,7 @@ def Pair_Pick_Gtroi(pick_path, gtroi_path):
     # Pair *.pick and *.gtroi
     # return {TP, FP, FN, Dist, IoU, mAP}
     # {'TP': int, 'FP': int, 'FN': int, 'Dist': float, 'IoU': float, 'mAP': float}
-    IOU_THRES = 0.7
+    IOU_THRES = 0.65
     print "Reading:-----" + pick_path + '\t IoU_Thresh = ' + str(IOU_THRES)
 
     if not (os.path.exists(pick_path) and os.path.exists(gtroi_path)):
